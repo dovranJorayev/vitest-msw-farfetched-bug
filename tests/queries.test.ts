@@ -47,6 +47,9 @@ describe("queries", () => {
       request: {
         url: "http://localhost:3000/api/v1/profile",
         method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
       response: {
         contract: unknownContract,
@@ -63,18 +66,18 @@ describe("queries", () => {
   itMocked("custom query", async () => {
     const scope = fork();
 
-    const jsonQuery = createQuery({
+    const customQuery = createQuery({
       handler: () =>
         fetch(new Request("http://localhost:3000/api/v1/profile")).then((res) =>
           res.json()
         ),
     });
 
-    await allSettled(jsonQuery.start, {
+    await allSettled(customQuery.start, {
       scope,
     });
-    expect(scope.getState(jsonQuery.$error)).toBeNull();
-    expect(scope.getState(jsonQuery.$data)).toEqual({ name: "test user" });
+    expect(scope.getState(customQuery.$error)).toBeNull();
+    expect(scope.getState(customQuery.$data)).toEqual({ name: "test user" });
   });
   itMocked("fetch with Request or url are both mocked", async () => {
     const responseWithUrl = await fetch(

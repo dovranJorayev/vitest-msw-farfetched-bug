@@ -39,13 +39,13 @@ import {
     ],
   });
   
-  describe('CreatePage', () => {
+  describe('queries', () => {
     itMocked('json query', async () => {
       const scope = fork();
   
       const jsonQuery = createJsonQuery({
         request: {
-          url: 'реез/api/v1/profile',
+          url: '/api/v1/profile',
           method: 'GET',
         },
         response: {

@@ -3,7 +3,7 @@ import {
   createQuery,
   unknownContract,
 } from "@farfetched/core";
-import { allSettled, fork } from "effector";
+import { allSettled, createEffect, fork } from "effector";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { describe, expect, it, vi } from "vitest";
@@ -26,7 +26,7 @@ const itMocked = it.extend<{
       const server = setupServer(...handlers);
 
       // Start the server
-      server.listen({ onUnhandledRequest: "error" });
+      server.listen({ onUnhandledRequest: "bypass" });
 
       // Provide the server to the test
       await use();
@@ -63,14 +63,30 @@ describe("queries", () => {
     expect(scope.getState(jsonQuery.$data)).toEqual({ name: "test user" });
   });
 
-  itMocked("custom query", async () => {
+  itMocked("custom query with Request", async () => {
     const scope = fork();
 
     const customQuery = createQuery({
-      handler: () =>
+      handler: createEffect(() =>
         fetch(new Request("http://localhost:3000/api/v1/profile")).then((res) =>
           res.json()
-        ),
+        )
+      ),
+    });
+
+    await allSettled(customQuery.start, {
+      scope,
+    });
+    expect(scope.getState(customQuery.$error)).toBeNull();
+    expect(scope.getState(customQuery.$data)).toEqual({ name: "test user" });
+  }); 
+  itMocked("custom query with url", async () => {
+    const scope = fork();
+
+    const customQuery = createQuery({
+      handler: createEffect(() =>
+        fetch("http://localhost:3000/api/v1/profile").then((res) => res.json())
+      ),
     });
 
     await allSettled(customQuery.start, {
